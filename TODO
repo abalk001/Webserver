@@ -1,0 +1,11 @@
+13/02/2026
+
+Till now, we build a server and client side. the server listen to the port 8080
+the ip used here is the localhost 
+the server can get the index.html
+
+what need to be done: 
+  -> look for the file, see if it exist in the directory, and if yes, send it to the clien as a with send() 
+  -> handle multiple connex
+  -> The server shutdown when the first conx is done, need an infinit loop here 
+
