@@ -45,9 +45,9 @@ int setuping_recv(int *socket, struct sockaddr *client_addr)
   return new_socket;
 }
 
-void printing_vect(std::vector<char> &buff, ssize_t *bytes_read);
+void printing_vect(const std::vector<char> &buff, ssize_t bytes_read)
 {
- for (ssize_t i = 0; i < &bytes_read; i++)
+ for (ssize_t i = 0; i < bytes_read; i++)
    std::cout << buff[i];
  std::cout << std::endl;
 }

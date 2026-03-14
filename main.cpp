@@ -1,6 +1,6 @@
 #include "webserver.hpp"
  
-std::string search_find(const std::string &word, std::vector<char> &stc, ssize_t *bytes_read)
+std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t *bytes_read)
 {
   std::vector<char>::const_iterator end_it = stc.begin() + *bytes_read;
   std::vector<char>::const_iterator it = std::search(stc.begin(), end_it, word.begin(), word.end());
@@ -10,7 +10,7 @@ std::string search_find(const std::string &word, std::vector<char> &stc, ssize_t
     while (start != stc.begin() && *start != ' ')
       start--;
 
-    if(*start = ' ') start++;
+    if(*start == ' ') start++;
     std::vector<char>::const_iterator end = it;
     while (end != end_it && *end != ' ' 
           && *end != '\r' && *end != '\n')
@@ -38,7 +38,7 @@ int main(void)
   std::cout << "Received request" << std::endl;
 
   
-  printing_vect(&buff, &bytes_read);
+  printing_vect(buff, bytes_read);
 
   std::string pattern = ".html"; 
   /*std::vector<char>::iterator it = std::search(buff.begin(), buff.end(), pattern, pattern + pattern_len);
@@ -61,10 +61,10 @@ int main(void)
     it++;
   }*/ 
   
-  std::vector<char> file(1024);
-  std::string http_response =  search_find(pattern, file, &bytes_read);
-  printing_vect(std::vector<char> &file);
-  
+
+  std::string http_response =  search_find(pattern, buff, &bytes_read);
+  std::cout << http_response << std::endl;
+
   ssize_t dataSent = send(new_socket, http_response.c_str(), http_response.size(),0);
   if (dataSent < 0)
   {
