@@ -1,6 +1,6 @@
 NAME = server 
 
-SRCS = main.cpp utils.cpp 
+SRCS = main.cpp utils.cpp webserver.cpp 
 OBJS = $(SRCS:.cpp=.o)
 RM = rm -rf 
 CC = g++ 

@@ -3,16 +3,15 @@
 
 int main(void)
 {
-  Server server();
+  Server server;
   int server_fd = server.GetSocketfd();
+  //struct sockaddr_in client_add;
 
-  struct sockaddr_in server_add = server.GetSockaddrin();
-  struct sockaddr_in client_add;
-  
-  setuping(&server_fd, &server_add);
-  while (1)
-  {
-  int new_socket = setuping_recv(&server_fd, (struct sockaddr *)&client_add);
+
+  int error = server.setuping();
+  if (error == -1)
+    return error;
+  int new_socket = server.setuping_recv();
    
   std::vector<char> buff(1024);
   ssize_t bytes_read = recv(new_socket, buff.data(), buff.size(), 0);
@@ -44,7 +43,7 @@ int main(void)
     std::cout << "We cool"<< std::endl;
   else 
     std::cout << "Only " << dataSent << "was sent over " << http_response.size() << std::endl;
-  close(new_socket);}
-  close(server_fd);
+  close(new_socket);
+  
   return 0;
 }
