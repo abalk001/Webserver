@@ -3,8 +3,10 @@
 
 int main(void)
 {
-  int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  struct sockaddr_in server_add;
+  Server server();
+  int server_fd = server.GetSocketfd();
+
+  struct sockaddr_in server_add = server.GetSockaddrin();
   struct sockaddr_in client_add;
   
   setuping(&server_fd, &server_add);

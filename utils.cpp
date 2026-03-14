@@ -1,16 +1,30 @@
 #include "webserver.hpp"
 
 
+
+Server::Server() : m_server_fd(socket(AF_INET, SOCK_STREAM, 0))
+{
+  if (this->m_server_fd < 0)
+    throw SocketException();
+  memset(&this->m_server_add, 0, sizeof(this->m_server_add));
+  this->m_server_add.sin_family = AF_INET;
+  this->m_server_add.sin_port = htons(PORT);
+  this->m_server_add.sin_addr.s_addr = INADDR_ANY;
+}
+int Server::GetSocketfd()
+{
+  return this->m_server_fd;
+}
+
+struct sockaddr_in Server::GetSockaddrin()
+{
+  return this->m_server_add;
+}
 int setuping(int *socket, struct sockaddr_in  *server_add)
 {
 
   int y = 1;
   
-  memset(server_add, 0, sizeof(server_add));
-  server_add->sin_family = AF_INET;
-  server_add->sin_port = htons(PORT);
-  server_add->sin_addr.s_addr = INADDR_ANY;
-
   if (setsockopt(*socket, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(int)) == -1)
   {
     std::cerr << "error in the setsockopt"<< std::endl;

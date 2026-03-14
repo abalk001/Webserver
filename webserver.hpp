@@ -13,6 +13,28 @@
 #include <algorithm> 
 #include <fstream>
 #include <iterator>
+#include <exception>  
+
+
+class Server 
+{
+private:
+  const int m_server_fd;
+  struct sockaddr_in m_server_add;
+public:
+  Server();
+  int GetSocketfd();
+  struct sockaddr_in GetSockaddrin();
+  class SocketException : std::exception 
+  {
+  public:
+    const char *what() const throw() {
+      return "Socket failed \n";
+    }
+  };
+};
+
+
 
 int setuping(int *socket, struct sockaddr_in *server_add);
 int setuping_recv(int *socket, struct sockaddr *client_addr);
