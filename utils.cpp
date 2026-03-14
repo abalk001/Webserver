@@ -1,14 +1,12 @@
 #include "webserver.hpp"
 
 
-
-
 int setuping(int *socket, struct sockaddr_in  *server_add)
 {
 
   int y = 1;
   
-  memset(server_add, 0, sizeof(&server_add));
+  memset(server_add, 0, sizeof(server_add));
   server_add->sin_family = AF_INET;
   server_add->sin_port = htons(PORT);
   server_add->sin_addr.s_addr = INADDR_ANY;
@@ -46,3 +44,27 @@ int setuping_recv(int *socket, struct sockaddr *client_addr)
 
   return new_socket;
 }
+
+void printing_vect(std::vector<char> &buff, ssize_t *bytes_read);
+{
+ for (ssize_t i = 0; i < &bytes_read; i++)
+   std::cout << buff[i];
+ std::cout << std::endl;
+}
+
+
+std::string sending()
+{
+  
+  std::string html_body = "<html><body><h1>Hello from my C++ Server!</h1></body></html>";
+  std::string http_response = 
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: " + std::to_string(html_body.length()) + "\r\n"
+        "Connection: close\r\n"
+        "\r\n" + html_body;
+
+  return http_response;
+}
+
+

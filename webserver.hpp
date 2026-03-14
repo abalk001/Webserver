@@ -14,6 +14,6 @@
 
 
 int setuping(int *socket, struct sockaddr_in *server_add);
-int setuping_recv(int *socket, struct sockaddr *client_addr):
-
+int setuping_recv(int *socket, struct sockaddr *client_addr);
+void printing_vect(const std::vector<char> &buff, ssize_t bytes_read);
 #endif 
