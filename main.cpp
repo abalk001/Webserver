@@ -1,28 +1,5 @@
 #include "webserver.hpp"
  
-std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t *bytes_read)
-{
-  std::vector<char>::const_iterator end_it = stc.begin() + *bytes_read;
-  std::vector<char>::const_iterator it = std::search(stc.begin(), end_it, word.begin(), word.end());
-  if (it != end_it)
-  {
-    std::vector<char>::const_iterator start = it;
-    while (start != stc.begin() && *start != ' ')
-      start--;
-
-    if(*start == ' ') start++;
-    std::vector<char>::const_iterator end = it;
-    while (end != end_it && *end != ' ' 
-          && *end != '\r' && *end != '\n')
-    {end++;}
-
-    return std::string(start, end);
-  }
-
-  return "";
-
-}
-
 
 int main(void)
 {
@@ -41,30 +18,10 @@ int main(void)
   printing_vect(buff, bytes_read);
 
   std::string pattern = ".html"; 
-  /*std::vector<char>::iterator it = std::search(buff.begin(), buff.end(), pattern, pattern + pattern_len);
+  std::string index_html =  search_find(pattern, buff, &bytes_read);
+  std::cout << index_html << std::endl;
 
-  if (it != buff.end())
-  {
-    std::cout << "Got it " << std::endl;
-  }
-
-  while(*it != ' ')
-  {
-    it--;
-  }
-
-  std::vector<char> file;
-  it++;
-  while(*it != ' ')
-  {
-    file.push_back(*it);
-    it++;
-  }*/ 
-  
-
-  std::string http_response =  search_find(pattern, buff, &bytes_read);
-  std::cout << http_response << std::endl;
-
+  std::string http_response = sending(index_html);
   ssize_t dataSent = send(new_socket, http_response.c_str(), http_response.size(),0);
   if (dataSent < 0)
   {
@@ -73,8 +30,10 @@ int main(void)
     close(new_socket);
     return -1;
   }
-  if (static_cast<size_t>(dataSent) == http_response.size()) {std::cout << "We cool"<< std::endl;}
-  else {std::cout << "Only " << dataSent << "was sent over " << http_response.size() << std::endl;}
+  if (static_cast<size_t>(dataSent) == http_response.size())
+    std::cout << "We cool"<< std::endl;
+  else 
+    std::cout << "Only " << dataSent << "was sent over " << http_response.size() << std::endl;
   close(new_socket);
 
   close(server_fd);
