@@ -63,9 +63,13 @@ std::string sending(std::string &index)
 
   std::string html_body ;
   index.erase(0,1);
+
+  std::string content_type = get_content(index);
+  std::string status = "HTTP/1.1 200 OK\r\n";
+
   if (fileExists(index))
   {
-    std::ifstream file(index.c_str());
+    std::ifstream file(index.c_str(), std::ios::binary);
     if (file.is_open()) 
     {
       std::cout << "We here " << std::endl;
@@ -82,12 +86,13 @@ std::string sending(std::string &index)
   }
   else 
   {
-    
+    status = "HTTP/1.1 404 Not Found\r\n";
+    content_type = "text/html"; 
     html_body = "<html><body><h1>ERROR 404 FILE NOT FOUND </h1></body></html>";
   }
     std::string http_response = 
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
+        status +
+        "Content-Type: " + content_type + "\r\n" +
         "Content-Length: " + std::to_string(html_body.length()) + "\r\n"
         "Connection: close\r\n"
         "\r\n" + html_body;
@@ -115,6 +120,20 @@ std::string search_find(const std::string &word, const std::vector<char> &stc, s
   }
 
   return "";
+} // That's too much hardcode ! 
 
+std::string get_content(const std::string& filename)
+{
+  size_t dot = filename.find_last_of(".");
+
+  if (dot == std::string::npos) 
+    return "text/plain";
+  std::string ex = filename.substr(dot);
+  if (ex == ".html" || ex == ".htm")
+    return "text/html";
+  if (ex == ".css")
+    return "text/css";
+
+  return "text/plain";
 }
 

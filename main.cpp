@@ -8,6 +8,8 @@ int main(void)
   struct sockaddr_in client_add;
   
   setuping(&server_fd, &server_add);
+  while (1)
+  {
   int new_socket = setuping_recv(&server_fd, (struct sockaddr *)&client_add);
    
   std::vector<char> buff(1024);
@@ -17,11 +19,17 @@ int main(void)
   
   printing_vect(buff, bytes_read);
 
-  std::string pattern = ".html"; 
+  std::string pattern = ".html";
   std::string index_html =  search_find(pattern, buff, &bytes_read);
-  std::cout << index_html << std::endl;
+  if (index_html.size() == 0)
+  {
+    pattern = ".css";
+    index_html = search_find(pattern,buff, &bytes_read);
+  }
 
+  std::cout << index_html << std::endl;
   std::string http_response = sending(index_html);
+  
   ssize_t dataSent = send(new_socket, http_response.c_str(), http_response.size(),0);
   if (dataSent < 0)
   {
@@ -34,8 +42,7 @@ int main(void)
     std::cout << "We cool"<< std::endl;
   else 
     std::cout << "Only " << dataSent << "was sent over " << http_response.size() << std::endl;
-  close(new_socket);
-
+  close(new_socket);}
   close(server_fd);
   return 0;
 }
