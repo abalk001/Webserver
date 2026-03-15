@@ -62,11 +62,7 @@ std::string to_string(T value)
 
 
 
-// int setuping(int *socket, struct sockaddr_in *server_add);
-// int setuping_recv(int *socket, struct sockaddr *client_addr);
 void printing_vect(const std::vector<char> &buff, ssize_t bytes_read);
-
-//std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t bytes_read);
 std::string sendingI(std::string &index);
 std::string get_content(const std::string& filename);
 #endif 

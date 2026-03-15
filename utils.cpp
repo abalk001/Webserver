@@ -1,21 +1,6 @@
 #include "webserver.hpp"
 #include <string>
 
-
-
-/*int setuping_recv(int *socket, struct sockaddr *client_addr)
-{
-  socklen_t sin_size = sizeof(*client_addr);
-  int new_socket = accept(*socket, client_addr, &sin_size);
-  if (new_socket < 0)
-  {
-    std::cerr << "There is an issue with accept" << std::endl;
-    return -1;
-  }
-
-  return new_socket;
-}*/
-
 void printing_vect(const std::vector<char> &buff, ssize_t bytes_read)
 {
  for (ssize_t i = 0; i < bytes_read; i++)
@@ -70,29 +55,6 @@ std::string sendingI(std::string &index)
   return http_response;
 }
 
-
-/*std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t bytes_read)
-{
-  std::vector<char>::const_iterator end_it = stc.begin() + bytes_read;
-  std::vector<char>::const_iterator it = std::search(stc.begin(), end_it, word.begin(), word.end());
-  if (it != end_it)
-  {
-    std::vector<char>::const_iterator start = it;
-    while (start != stc.begin() && *start != ' ')
-      start--;
-
-    if(*start == ' ') start++;
-    std::vector<char>::const_iterator end = it;
-    while (end != end_it && *end != ' ' 
-          && *end != '\r' && *end != '\n')
-    {end++;}
-
-    return std::string(start, end);
-  }
-
-  return "";
-} // That's too much hardcode ! 
-*/
 std::string get_content(const std::string& filename)
 {
   size_t dot = filename.find_last_of(".");

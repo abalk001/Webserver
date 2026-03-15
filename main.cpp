@@ -5,8 +5,13 @@ int main(void)
 {
   Server server;
   int error;
-
-  error = server.setuping();
+  try {
+    error = server.setuping();
+  }
+  catch(std::exception& e)
+  {
+    std::cout << e.what();
+  }
   if (error == -1)
     return error; 
   server.setuping_recv();
@@ -16,7 +21,14 @@ int main(void)
     std::cout <<"Error"<< std::endl;
     return -1;
   }
+  try
+  {
+    server.sending(bytes_read);
+  }
+  catch (const std::exception& e)
+  {
+    std::cout << e.what();
+  }
 
-  server.sending(bytes_read);  
   return 0;
 }
