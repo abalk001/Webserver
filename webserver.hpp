@@ -2,7 +2,7 @@
 #define WEBSERVER_HPP
 
 # define PORT 8080
-# define QUEU 5
+# define BACKLOG 64
 
 #include <unistd.h>
 #include <iostream>
@@ -16,39 +16,49 @@
 #include <iterator>
 #include <exception>  
 #include <sstream>
+#include <fcntl.h>
+#include <poll.h>
+#include <map>
+
+
+
+
+struct ClientState
+{
+  std::string request;
+  std::string response;
+  size_t      bytes_sent;
+};
 
 class Server 
 {
 private:
-  const int m_server_fd;
-  int m_client_fd;
+  int m_listen_fd;
   struct sockaddr_in m_server_add;
-  struct sockaddr_in m_client_add;
-  std::vector<char> m_buff; // need a dynamic vector
-  std::string search_find(std::string &word, ssize_t bytes_read);
+  std::vector<struct pollfd> m_fds;
+  std::map<int, ClientState> m_clients;
+  std::string m_root;
+
+  void setNonBlocking(int fd);
+  void acceptClient();
+  void handleRead(int fd);
+  void handleWrite(int fd);
+  void closeClient(int fd);
+  std::string buildResponse(const std::string& rawRequest);
+  bool isRequestComplete(const std::string& rawRequest);
+  bool parseRequestLine(const std::string& rawRequest, std::string& method, std::string& path);
+
 public:
-  Server();
+  Server(int port = PORT, const std::string& root = ".");
   ~Server();
-  int GetSocketfd();
-  struct sockaddr_in GetSockaddrin();
-  int setuping();
-  int setuping_recv();
-  ssize_t receiving();
-  void sending(ssize_t bytes_read);
-  class SocketException : std::exception 
+  void run();
+
+  class SocketException : std::exception \
   {
   public:
     const char *what() const throw() {
       return "Socket failed \n";
     }
-  };
-  class SendingException: std::exception 
-  {
-    public: 
-      const char *what() const throw()
-      {
-        return "Receving failing \n";
-      }
   };
 };
 
@@ -60,9 +70,7 @@ std::string to_string(T value)
   return oss.str();
 }
 
-
-
-void printing_vect(const std::vector<char> &buff, ssize_t bytes_read);
-std::string sendingI(std::string &index);
+std::string sendingI(const std::string &path);
 std::string get_content(const std::string& filename);
+bool fileExists(const std::string& filename);
 #endif 

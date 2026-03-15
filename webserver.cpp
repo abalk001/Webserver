@@ -1,131 +1,236 @@
 #include "webserver.hpp"
+#include <errno.h>
 
-
-Server::Server() : m_server_fd(socket(AF_INET, SOCK_STREAM, 0)), m_buff(1024)
+Server::Server(int port, const std::string& root) : m_listen_fd(-1), m_root(root)
 {
-  if (this->m_server_fd < 0)
+  m_listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (m_listen_fd < 0)
     throw SocketException();
-  memset(&this->m_server_add, 0, sizeof(this->m_server_add));
-  this->m_server_add.sin_family = AF_INET;
-  this->m_server_add.sin_port = htons(PORT);
-  this->m_server_add.sin_addr.s_addr = INADDR_ANY;
+
+  memset(&m_server_add, 0, sizeof(m_server_add));
+  m_server_add.sin_family = AF_INET;
+  m_server_add.sin_port = htons(port);
+  m_server_add.sin_addr.s_addr = INADDR_ANY;
+
+  setNonBlocking(m_listen_fd);
+
+  int y = 1;
+  if (setsockopt(m_listen_fd, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(int)) == -1)
+    throw SocketException();
+  if (bind(m_listen_fd, (struct sockaddr *)&m_server_add, sizeof(struct sockaddr)) < 0)
+    throw SocketException();
+  if (listen(m_listen_fd, BACKLOG) < 0)
+    throw SocketException();
+
+  struct pollfd pfd;
+  pfd.fd = m_listen_fd;
+  pfd.events = POLLIN;
+  pfd.revents = 0;
+  m_fds.push_back(pfd);
+
+  std::cout << "Server listening on port " << port << std::endl;
 }
 
 Server::~Server()
 {
-  close(m_server_fd);
+  for (size_t i = 0; i < m_fds.size(); ++i)
+    close(m_fds[i].fd);
 }
 
-int Server::GetSocketfd()
+void Server::setNonBlocking(int fd)
 {
-  return this->m_server_fd;
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (flags < 0)
+    throw SocketException();
+  if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+    throw SocketException();
 }
 
-struct sockaddr_in Server::GetSockaddrin()
+void Server::run()
 {
-  return this->m_server_add;
+  while (true)
+  {
+    int ready = poll(&m_fds[0], m_fds.size(), -1);
+    if (ready < 0)
+    {
+      if (errno == EINTR)
+        continue;
+      throw SocketException();
+    }
+
+    size_t i = 0;
+    while (i < m_fds.size())
+    {
+      struct pollfd current = m_fds[i];
+
+      if (current.revents & (POLLHUP | POLLERR | POLLNVAL))
+      {
+        closeClient(current.fd);
+        continue;
+      }
+
+      if (current.revents & POLLIN)
+      {
+        if (current.fd == m_listen_fd)
+          acceptClient();
+        else
+          handleRead(current.fd);
+      }
+
+      if (i < m_fds.size() && (current.revents & POLLOUT))
+        handleWrite(current.fd);
+
+      ++i;
+    }
+  }
 }
 
-void Server::sending(ssize_t bytes_read)
+void Server::acceptClient()
 {
-  std::string ext = ".html";
-  std::string filename =  Server::search_find(ext, bytes_read);
-  if (filename.size() == 0)
+  while (true)
   {
-    ext = ".css";
-    filename = Server::search_find(ext, bytes_read);
-  }
-  std::cout << "The filename asked for: ";
-  std::cout << filename << std::endl;
+    struct sockaddr_in client_addr;
+    socklen_t sin_size = sizeof(client_addr);
+    int client_fd = accept(m_listen_fd, (struct sockaddr *)&client_addr, &sin_size);
+    if (client_fd < 0)
+    {
+      if (errno == EAGAIN || errno == EWOULDBLOCK)
+        break;
+      throw SocketException();
+    }
 
-  ////////////
-  std::string http_response = sendingI(filename);
-  ssize_t dataSent = send(m_client_fd, http_response.c_str(), http_response.size(),0);
-  if (dataSent < 0)
-  {
-    std::cerr << "Error in the sent" << std::endl;
-    close(m_server_fd);
-    close(m_client_fd);
-    throw SendingException();
+    setNonBlocking(client_fd);
+    struct pollfd pfd;
+    pfd.fd = client_fd;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+    m_fds.push_back(pfd);
+    m_clients[client_fd] = ClientState();
   }
-  if (static_cast<size_t>(dataSent) == http_response.size())
-    std::cout << "We cool"<< std::endl;
-  else 
-    std::cout << "Only " << dataSent << "was sent over " << http_response.size() << std::endl;
-  close(m_client_fd);
 }
 
-int Server::setuping_recv()
+bool Server::isRequestComplete(const std::string& rawRequest)
 {
-  socklen_t sin_size = sizeof(m_client_add);
-  m_client_fd = accept(m_server_fd, (struct sockaddr *)&m_client_add, &sin_size);
-  if (m_client_fd < 0)
-  {
-    std::cerr << "There is an issue with accept" << std::endl;
-    return -1;
-  }
-
-  return m_client_fd;
-  
+  return rawRequest.find("\r\n\r\n") != std::string::npos;
 }
 
-int Server::setuping()
+bool Server::parseRequestLine(const std::string& rawRequest, std::string& method, std::string& path)
 {
-
-  int y = 1;
-  
-  if (setsockopt(m_server_fd, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(int)) == -1)
-  {
-    std::cerr << "error in the setsockopt"<< std::endl;
-    return -1;
-  }
-  if (bind(m_server_fd, (struct sockaddr *)&m_server_add, sizeof(struct sockaddr)))
-  {
-    std::cerr << "Error in the binding" << std::endl;
-    return -1;
-  }
-  
-  if (listen(m_server_fd, QUEU) < 0)
-  {
-    std::cerr << "error in the listening part" << std::endl;
-    return -1;
-  }
-  std::cout << "The sever is listening" << std::endl;
-
-  return 1;
+  std::string::size_type end = rawRequest.find("\r\n");
+  if (end == std::string::npos)
+    return false;
+  std::string firstLine = rawRequest.substr(0, end);
+  std::istringstream iss(firstLine);
+  std::string version;
+  if (!(iss >> method >> path >> version))
+    return false;
+  return true;
 }
 
-ssize_t Server::receiving()
+std::string Server::buildResponse(const std::string& rawRequest)
 {
-  ssize_t bytes_read = recv(m_client_fd, m_buff.data(), m_buff.size(), 0);
-  std::cout << "Recevied request" << std::endl;
-  printing_vect(m_buff, bytes_read);
-  return bytes_read;
-}
+  std::string method;
+  std::string path;
+  if (!parseRequestLine(rawRequest, method, path))
+    return "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
 
-std::string Server::search_find(std::string &word, ssize_t bytes_read)
-{
-  std::vector<char>::iterator end_it = m_buff.begin() + bytes_read;
-  std::vector<char>::iterator it = std::search(m_buff.begin(), end_it, 
-                                                      word.begin(), word.end());
-  if (it != end_it)
+  if (method != "GET" && method != "HEAD")
+    return "HTTP/1.1 405 Method Not Allowed\r\nAllow: GET, HEAD\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+
+  if (path == "/")
+    path = "/index.html";
+
+  std::string filePath = m_root;
+  if (!filePath.empty() && filePath[filePath.size() - 1] != '/')
+    filePath += "/";
+  if (path.size() > 0 && path[0] == '/')
+    filePath += path.substr(1);
+  else
+    filePath += path;
+
+  std::string response = sendingI(filePath);
+
+  if (method == "HEAD")
   {
-    std::vector<char>::const_iterator start = it;
-    std::vector<char>::const_iterator end = it;
-
-    while (start != m_buff.begin() && *start != ' ')
-      start--;
-    if(*start == ' ')
-      start++;
-    while (end != end_it && *end != ' ' 
-          && *end != '\r' && *end != '\n')
-    {end++;}
-
-    return std::string(start, end);
+    std::string::size_type pos = response.find("\r\n\r\n");
+    if (pos != std::string::npos)
+      response = response.substr(0, pos + 4);
   }
 
-  return "";
+  return response;
+}
 
+void Server::handleRead(int fd)
+{
+  char buffer[4096];
+  while (true)
+  {
+    ssize_t bytes = recv(fd, buffer, sizeof(buffer), 0);
+    if (bytes < 0)
+    {
+      if (errno == EAGAIN || errno == EWOULDBLOCK)
+        break;
+      closeClient(fd);
+      return;
+    }
+    if (bytes == 0)
+    {
+      closeClient(fd);
+      return;
+    }
+
+    m_clients[fd].request.append(buffer, buffer + bytes);
+
+    if (isRequestComplete(m_clients[fd].request))
+    {
+      m_clients[fd].response = buildResponse(m_clients[fd].request);
+      m_clients[fd].bytes_sent = 0;
+
+      for (size_t i = 0; i < m_fds.size(); ++i)
+      {
+        if (m_fds[i].fd == fd)
+        {
+          m_fds[i].events = POLLOUT;
+          break;
+        }
+      }
+      break;
+    }
+  }
+}
+
+void Server::handleWrite(int fd)
+{
+  ClientState &state = m_clients[fd];
+  const std::string &resp = state.response;
+
+  ssize_t sent = send(fd, resp.c_str() + state.bytes_sent, resp.size() - state.bytes_sent, 0);
+  if (sent < 0)
+  {
+    if (errno == EAGAIN || errno == EWOULDBLOCK)
+      return;
+    closeClient(fd);
+    return;
+  }
+
+  state.bytes_sent += static_cast<size_t>(sent);
+  if (state.bytes_sent >= resp.size())
+    closeClient(fd);
+}
+
+void Server::closeClient(int fd)
+{
+  close(fd);
+  m_clients.erase(fd);
+
+  for (size_t i = 0; i < m_fds.size(); ++i)
+  {
+    if (m_fds[i].fd == fd)
+    {
+      m_fds.erase(m_fds.begin() + i);
+      break;
+    }
+  }
 }
 
 
