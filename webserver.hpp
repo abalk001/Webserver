@@ -24,6 +24,8 @@ private:
   int m_client_fd;
   struct sockaddr_in m_server_add;
   struct sockaddr_in m_client_add;
+  std::vector<char> m_buff; // need a dynamic vector
+  std::string search_find(std::string &word, ssize_t bytes_read);
 public:
   Server();
   ~Server();
@@ -31,12 +33,22 @@ public:
   struct sockaddr_in GetSockaddrin();
   int setuping();
   int setuping_recv();
+  ssize_t receiving();
+  void sending(ssize_t bytes_read);
   class SocketException : std::exception 
   {
   public:
     const char *what() const throw() {
       return "Socket failed \n";
     }
+  };
+  class SendingException: std::exception 
+  {
+    public: 
+      const char *what() const throw()
+      {
+        return "Receving failing \n";
+      }
   };
 };
 
@@ -54,7 +66,7 @@ std::string to_string(T value)
 // int setuping_recv(int *socket, struct sockaddr *client_addr);
 void printing_vect(const std::vector<char> &buff, ssize_t bytes_read);
 
-std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t *bytes_read);
-std::string sending(std::string &index);
+//std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t bytes_read);
+std::string sendingI(std::string &index);
 std::string get_content(const std::string& filename);
 #endif 

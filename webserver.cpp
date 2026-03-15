@@ -1,7 +1,7 @@
 #include "webserver.hpp"
 
 
-Server::Server() : m_server_fd(socket(AF_INET, SOCK_STREAM, 0))
+Server::Server() : m_server_fd(socket(AF_INET, SOCK_STREAM, 0)), m_buff(1024)
 {
   if (this->m_server_fd < 0)
     throw SocketException();
@@ -24,6 +24,35 @@ int Server::GetSocketfd()
 struct sockaddr_in Server::GetSockaddrin()
 {
   return this->m_server_add;
+}
+
+void Server::sending(ssize_t bytes_read)
+{
+  std::string ext = ".html";
+  std::string filename =  Server::search_find(ext, bytes_read);
+  if (filename.size() == 0)
+  {
+    ext = ".css";
+    filename = Server::search_find(ext, bytes_read);
+  }
+  std::cout << "The filename asked for: ";
+  std::cout << filename << std::endl;
+
+  ////////////
+  std::string http_response = sendingI(filename);
+  ssize_t dataSent = send(m_client_fd, http_response.c_str(), http_response.size(),0);
+  if (dataSent < 0)
+  {
+    std::cerr << "Error in the sent" << std::endl;
+    close(m_server_fd);
+    close(m_client_fd);
+    throw SendingException();
+  }
+  if (static_cast<size_t>(dataSent) == http_response.size())
+    std::cout << "We cool"<< std::endl;
+  else 
+    std::cout << "Only " << dataSent << "was sent over " << http_response.size() << std::endl;
+  close(m_client_fd);
 }
 
 int Server::setuping_recv()
@@ -64,6 +93,39 @@ int Server::setuping()
   std::cout << "The sever is listening" << std::endl;
 
   return 1;
+}
+
+ssize_t Server::receiving()
+{
+  ssize_t bytes_read = recv(m_client_fd, m_buff.data(), m_buff.size(), 0);
+  std::cout << "Recevied request" << std::endl;
+  printing_vect(m_buff, bytes_read);
+  return bytes_read;
+}
+
+std::string Server::search_find(std::string &word, ssize_t bytes_read)
+{
+  std::vector<char>::iterator end_it = m_buff.begin() + bytes_read;
+  std::vector<char>::iterator it = std::search(m_buff.begin(), end_it, 
+                                                      word.begin(), word.end());
+  if (it != end_it)
+  {
+    std::vector<char>::const_iterator start = it;
+    std::vector<char>::const_iterator end = it;
+
+    while (start != m_buff.begin() && *start != ' ')
+      start--;
+    if(*start == ' ')
+      start++;
+    while (end != end_it && *end != ' ' 
+          && *end != '\r' && *end != '\n')
+    {end++;}
+
+    return std::string(start, end);
+  }
+
+  return "";
+
 }
 
 

@@ -29,7 +29,7 @@ bool fileExists(const std::string& filename)
   return file.good();
 }
 
-std::string sending(std::string &index)
+std::string sendingI(std::string &index)
 {
 
   std::string html_body ;
@@ -71,9 +71,9 @@ std::string sending(std::string &index)
 }
 
 
-std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t *bytes_read)
+/*std::string search_find(const std::string &word, const std::vector<char> &stc, ssize_t bytes_read)
 {
-  std::vector<char>::const_iterator end_it = stc.begin() + *bytes_read;
+  std::vector<char>::const_iterator end_it = stc.begin() + bytes_read;
   std::vector<char>::const_iterator it = std::search(stc.begin(), end_it, word.begin(), word.end());
   if (it != end_it)
   {
@@ -92,7 +92,7 @@ std::string search_find(const std::string &word, const std::vector<char> &stc, s
 
   return "";
 } // That's too much hardcode ! 
-
+*/
 std::string get_content(const std::string& filename)
 {
   size_t dot = filename.find_last_of(".");
