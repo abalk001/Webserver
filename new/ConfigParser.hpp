@@ -33,6 +33,25 @@ struct ServerConfig
 
 };
 
+template<typename T>
+bool extractValue(const std::vector<std::string>& tokens, size_t& i,
+                  T& outValue)
+{
+  if (i >= tokens.size()) return false;
+  i++;
+  std::stringstream ss(tokens[i]);
+  ss >> outValue;
+
+  i++;
+  if (i >= tokens.size() || tokens[i] != ";")
+  {
+    std::cerr << "Error here 3" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+
 
 class ConfigParser {
   private:
@@ -41,6 +60,7 @@ class ConfigParser {
     std::map<std::string, ServerHandler> m_serverDispatch;
     void handleListen(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleServer(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleHost(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     std::vector<std::string> m_helpingParser(const std::string& filename);
     void m_parsingServerBlock(const std::vector<std::string>& tokens, size_t &i);
   public:

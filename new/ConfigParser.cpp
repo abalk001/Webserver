@@ -6,19 +6,15 @@
 ConfigParser::ConfigParser()
 {
   m_serverDispatch["listen"] = &ConfigParser::handleListen;
-  m_serverDispatch["server"] = &ConfigParser::handleServer;
+  m_serverDispatch["server_name"] = &ConfigParser::handleServer;
+  m_serverDispatch["host"] = &ConfigParser::handleHost;
 }
 ConfigParser::~ConfigParser()
 {}
-void ConfigParser::handleServer(ServerConfig& server, size_t& i, const std::vector<std::string>& tokens)
-{
-    // TODO: implement
-    (void)server;
-    (void)i;
-    (void)tokens;
-}
+
 std::vector<std::string> ConfigParser::m_helpingParser(const std::string& filename)
 {
+  // We tokenize the shit out this 
   std::ifstream file(filename.c_str());
   std::vector<std::string> tokens;
 
@@ -60,28 +56,27 @@ void ConfigParser::m_parsingServerBlock(const std::vector<std::string>& tokens, 
     std::map<std::string, ServerHandler>::iterator it = m_serverDispatch.find(tokens[i]);
     if (it != m_serverDispatch.end())
     {
-      (this->*(it->second))(newServ, i, tokens);
+      (this->*(it->second))(newServ, i, tokens); // run the fct we just found in the map (synthax from hell)
     }
     else 
     {
-      std::cerr << "Error" << tokens[i] << std::endl;
+      std::cerr << "Error in finding the fct in cpp for : " << tokens[i] << std::endl;
     }
     i++;
   }
   m_servers.push_back(newServ);
 }
 
-void ConfigParser::handleListen(ServerConfig& server, size_t& i, const std::vector<std::string>& tokens)
-{
-  i++;
-  std::cout << "port: " << std::atoi(tokens[i].c_str());
-}
+
+
+
+
 bool ConfigParser::parsefile(const std::string& fileame)
 {
   // check if it can open the file or not 
 
   std::vector<std::string> tokens;
-  tokens = m_helpingParser(fileame);
+  tokens = m_helpingParser(fileame); // tokenzation
   if(tokens.empty())
     return false;
   for (size_t i = 0; i < tokens.size(); i++)
@@ -91,17 +86,17 @@ bool ConfigParser::parsefile(const std::string& fileame)
       if (i + 1 < tokens.size() && tokens[i + 1] == "{")
       {
         i += 2; // skiping the server and the { 
-        m_parsingServerBlock(tokens,i);
+        m_parsingServerBlock(tokens,i);// maping the config into our struct
       }
       else 
       {
-        std::cerr << "Error here" << std::endl;
+        std::cerr << "Error here in config " << std::endl;
         return false;
       }
     }
     else 
     {
-      std::cerr << "Error here 2" << std::endl;
+      std::cerr << "Error here 2: no server found" << std::endl;
       return true;
     }
   }
