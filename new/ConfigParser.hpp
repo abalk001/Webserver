@@ -15,8 +15,8 @@ struct LocationConfig {
   std::string upladPath; // store the loc for the upload 
   std::string cgiExtension;
   std::string cgiPath;
-  bool autoindex = false;
-  bool uploadEnable = false;
+  bool autoindex;
+  bool uploadEnable;
 
 };
 
@@ -25,9 +25,9 @@ struct LocationConfig {
 struct ServerConfig 
 {
   std::string host;
-  int port = 8080;
+  int port;
   std::string serverName;
-  size_t clientMax = 3;
+  size_t clientMax;
   std::map<int, std::string> errorPage;
   std::vector<LocationConfig> locations;
 

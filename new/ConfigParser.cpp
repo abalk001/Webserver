@@ -68,9 +68,6 @@ void ConfigParser::m_parsingServerBlock(const std::vector<std::string>& tokens, 
 }
 
 
-
-
-
 bool ConfigParser::parsefile(const std::string& fileame)
 {
   // check if it can open the file or not 
@@ -102,4 +99,9 @@ bool ConfigParser::parsefile(const std::string& fileame)
   }
   std::cout << m_servers[0].port << std::endl;
     return true;
+}
+
+std::vector<ServerConfig> ConfigParser::getServer() const
+{
+  return m_servers;
 }
