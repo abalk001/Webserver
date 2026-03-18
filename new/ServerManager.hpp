@@ -4,13 +4,18 @@
 #include <cstdlib>
 #include <iostream>
 #include <unistd.h>
-
-
+#include <fcntl.h>
+#include <cstring>
+#include <sys/socket.h>
+#include <map>
+#include <vector>
+#include <netinet/in.h>
+#include "ConfigParser.hpp"
 class ServerManager 
 {
   private:
     std::vector<ServerConfig> m_configs;
-    std::vecctor<int> m_listenSocket;
+    std::vector<int> m_listenSocket;
     
     std::map<int, ServerConfig> m_configMap;
     std::map<int, struct sockaddr_in> m_addressMap;
@@ -19,14 +24,14 @@ class ServerManager
     ~ServerManager();
     
     void SetupServer(const std::vector<ServerConfig>& config);
-    void run();
-}
+    void run(){};
+};
 
 void ServerManager::SetupServer(const std::vector<ServerConfig>& config)
 {
-  this->m_config = config;
-  std::vector<ServerConfig>::const_iterator start = config.start();
-  std::vector<ServerConfig>::const_iterator end = config.end();
+  this->m_configs = config;
+  std::vector<ServerConfig>::const_iterator start = this->m_configs.begin();
+  std::vector<ServerConfig>::const_iterator end = this->m_configs.end();
 
   for(std::vector<ServerConfig>::const_iterator it = start; it != end; ++it)
   {
@@ -56,7 +61,7 @@ void ServerManager::SetupServer(const std::vector<ServerConfig>& config)
       memset(&server_addr, 0, sizeof(server_addr));
       server_addr.sin_family = AF_INET;
       server_addr.sin_port = htons(it->port);
-      server_addr.sin_addr.s_addr = htonl(INADD_ANY);
+      server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
       if (bind(new_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
       {
@@ -65,7 +70,7 @@ void ServerManager::SetupServer(const std::vector<ServerConfig>& config)
         continue;
       }
 
-      if (listetn(new_socket, 128) < 0)
+      if (listen(new_socket, 128) < 0)
       {
         std::cerr << "error : listen failed for the server: " << it->serverName;
         close(new_socket);

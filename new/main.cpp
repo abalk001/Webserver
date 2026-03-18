@@ -4,8 +4,8 @@
 #include <iostream>
 #include "ConfigParser.hpp"
 #include <sys/socket.h>
-#include <netinet/in.h>
 // this fct is working perfectly !!
+#include <netinet/in.h>
 #include "ServerManager.hpp"
 
 
@@ -16,8 +16,8 @@ int main(void)
 {
   ConfigParser conf;
   conf.parsefile("default.conf");
-  std::vector<ServerConfig> ser = conf.getServer();
+  const std::vector<ServerConfig> ser = conf.getServer();
   ServerManager server;
-  server.SetupServers(ser);
+  server.SetupServer(ser);
   return 0;
 }
