@@ -3,24 +3,12 @@
 #include <vector>
 #include <iostream>
 #include "ConfigParser.hpp"
-
+#include <sys/socket.h>
+#include <netinet/in.h>
 // this fct is working perfectly !!
+#include "ServerManager.hpp"
 
 
-
-
-class ServerManager
-{
-private:
-  std::vector<ServerConfig> m_configs;
-  std::vector<int> m_listenSockets;
-  
-public:
-  ServerManager();
-  ~ServerManager();
-  void SetupServers(const std::vector<ServerConfig>& configs);
-  void run();
-};
 
 
 
@@ -28,7 +16,8 @@ int main(void)
 {
   ConfigParser conf;
   conf.parsefile("default.conf");
-  std::vector<ServerConfig> server = conf.getServer();
-  
+  std::vector<ServerConfig> ser = conf.getServer();
+  ServerManager server;
+  server.SetupServers(ser);
   return 0;
 }
