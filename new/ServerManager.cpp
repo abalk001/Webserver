@@ -5,7 +5,16 @@ ServerManager::ServerManager()
 {
 }
 
-ServerManager::~ServerManager() {}
+ServerManager::~ServerManager()
+{
+  std::vector<int>::iterator start = m_listenSocket.begin();
+  std::vector<int>::iterator end = m_listenSocket.end();
+  for (std::vector<int>::iterator it = start; it != end; ++it)
+  {
+    close(*it);
+  }
+  std::cout << "All socket closed" << std::endl;
+}
 
 
 void ServerManager::SetupServer(const std::vector<ServerConfig>& config)
