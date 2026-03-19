@@ -61,6 +61,7 @@ class ConfigParser {
     void handleListen(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleServer(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleHost(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleClient(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     std::vector<std::string> m_helpingParser(const std::string& filename);
     void m_parsingServerBlock(const std::vector<std::string>& tokens, size_t &i);
   public:

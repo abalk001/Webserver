@@ -22,4 +22,19 @@ void ConfigParser::handleServer(ServerConfig& server, size_t& i,
 }
 
 
+void ConfigParser::handleClient(ServerConfig& server, size_t&i, 
+                              const std::vector<std::string>& tokens)
+{
+  extractValue(tokens, i , server.clientMax);
+  std::cout << "Client Max : " << server.clientMax << std::endl;
+}
+
+void ConfigParser::handleRoot(ServerConfig& server, size_t& i,
+                    const std::vector::<std::string>& tokens)
+
+{
+  server.locations
+}
+
+
 
