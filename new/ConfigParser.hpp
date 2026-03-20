@@ -7,10 +7,10 @@
 #include <string>
 
 struct LocationConfig {
-  std::string path;
+  std::string path; // the route identifier 
   std::vector<std::string> allowedMethodes; // for Get and so on 
   std::string redirectUrl; // HTTP redirection 
-  std::string root; // Where the file should be locared 
+  std::string root; // Where requested file should be locared 
   std::string indexFile; // Default file (index.html)
   std::string upladPath; // store the loc for the upload 
   std::string cgiExtension;
@@ -25,11 +25,13 @@ struct LocationConfig {
 struct ServerConfig 
 {
   std::string host;
-  int port;
-  std::string serverName;
-  size_t clientMax;
-  std::map<int, std::string> errorPage;
+  int port; // THis is port where the server will listen. I think it's pretty clear 
+  std::string serverName; // no need I guess
+  size_t clientMax; // same here 
+  std::map<int, std::string> errorPage; // 
   std::vector<LocationConfig> locations;
+  std::string root; 
+  std::string indexFile;
 
 };
 
@@ -61,6 +63,7 @@ class ConfigParser {
     void handleListen(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleServer(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleHost(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleRoot(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleClient(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     std::vector<std::string> m_helpingParser(const std::string& filename);
     void m_parsingServerBlock(const std::vector<std::string>& tokens, size_t &i);

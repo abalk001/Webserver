@@ -8,8 +8,8 @@ ConfigParser::ConfigParser()
   m_serverDispatch["listen"] = &ConfigParser::handleListen;
   m_serverDispatch["server_name"] = &ConfigParser::handleServer;
   m_serverDispatch["host"] = &ConfigParser::handleHost;
-  m_serverDispatch["roor"] = &ConfigParser::handleRoot;
-  m_serverDispatch["client_max_body_size"] = &ConfigParser::handleClient;
+  m_serverDispatch["root"] = &ConfigParser::handleRoot;
+ m_serverDispatch["client_max_body_size"] = &ConfigParser::handleClient;
 }
 ConfigParser::~ConfigParser()
 {}
