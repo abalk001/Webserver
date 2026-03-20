@@ -5,6 +5,7 @@
 #include <map>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 struct LocationConfig {
   std::string path; // the route identifier 
@@ -59,14 +60,32 @@ class ConfigParser {
   private:
     std::vector<ServerConfig> m_servers;
     typedef void (ConfigParser::*ServerHandler)(ServerConfig&, size_t&, const std::vector<std::string>&);
+    typedef void (ConfigParser::*LocationHandler)(LocationConfig&, size_t&, const std::vector<std::string>&);
     std::map<std::string, ServerHandler> m_serverDispatch;
+    std::map<std::string, LocationHandler> m_locationDispatch;
     void handleListen(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleServer(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleHost(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleRoot(ServerConfig& server, size_t& i, const std::vector<std::string>&);
     void handleClient(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleIndex(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleErrorPage(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleLocation(ServerConfig& server, size_t& i, const std::vector<std::string>&);
+    void handleLocationAllow(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationAutoIndex(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationIndex(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationRoot(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationReturn(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationUploadPath(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationUploadEnable(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationCgiPath(LocationConfig& location, size_t& i, const std::vector<std::string>&);
+    void handleLocationCgiExt(LocationConfig& location, size_t& i, const std::vector<std::string>&);
     std::vector<std::string> m_helpingParser(const std::string& filename);
     void m_parsingServerBlock(const std::vector<std::string>& tokens, size_t &i);
+    void m_parsingLocationBlock(ServerConfig& server, size_t& i, const std::vector<std::string>& tokens);
+    bool extractList(const std::vector<std::string>& tokens, size_t& i, std::vector<std::string>& out);
+    bool extractBool(const std::vector<std::string>& tokens, size_t& i, bool& out);
+    bool extractJoined(const std::vector<std::string>& tokens, size_t& i, std::string& out);
   public:
     ConfigParser();
     ~ConfigParser();
