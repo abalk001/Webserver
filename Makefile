@@ -1,6 +1,6 @@
 NAME = server 
 
-SRCS = main.cpp utils.cpp webserver.cpp 
+SRCS = main.cpp ConfigParser.cpp Handlers.cpp ServerManager.cpp
 OBJS = $(SRCS:.cpp=.o)
 RM = rm -rf 
 CC = g++ 
@@ -10,7 +10,7 @@ all : $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 
-%.o:%.cpp webserver.hpp
+%.o:%.cpp ConfigParser.hpp ServerManager.hpp 
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean : 

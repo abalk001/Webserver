@@ -1,18 +1,23 @@
-#include "webserver.hpp"
-#include "ConfigParser.hpp" 
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <iostream>
+#include "ConfigParser.hpp"
+#include <sys/socket.h>
+// this fct is working perfectly !!
+#include <netinet/in.h>
+#include "ServerManager.hpp"
+
+
+
+
 
 int main(void)
 {
-  Server server;
-  try
-  {
-    server.run();
-  }
-  catch(const std::exception& e)
-  {
-    std::cout << e.what();
-    return 1;
-  }
-
+  ConfigParser conf;
+  conf.parsefile("default.conf");
+  const std::vector<ServerConfig> ser = conf.getServer();
+  ServerManager server;
+  server.SetupServer(ser);
   return 0;
 }
